@@ -2,5 +2,5 @@
 
 Workshop materials. See slides here.
 
-![](CC-BY-NC-SA_logo.png)
+![](images/CC-BY-NC-SA_logo.png)
 
