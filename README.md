@@ -1,10 +1,14 @@
-## An introduction to hierarchical Bayesian modelling with R and JAGS
 
-Workshop materials. See slides here.
+## An introduction to hierarchical Bayesian modelling with R, JAGS and STAN
 
-Link for datasets: 
-https://www.dropbox.com/s/sxzvq06xmdcih0o/datasets.zip?dl=0
-http://tinyurl.com/ebddatos
+[Francisco Rodríguez Sánchez](https://bit.ly/frod_san)
+
+See slides (PDF) [here]()
+
+Slides written in Rmarkdown. See source code [here]()
+
+Link for datasets: http://tinyurl.com/treesdata
+
 
 ![](images/CC-BY-NC-SA_logo.png)
 

@@ -1,60 +1,121 @@
 ---
-title: "An introduction to Bayesian modelling with JAGS and R"
-subtitle: 
+title: |
+    | An introduction to Bayesian modelling
+    | with R, JAGS and STAN
+subtitle: ""
 author: "Francisco Rodriguez-Sanchez (@frod_san)"
-date: "April 2015"
+date: "November 2016"
+fontsize: 9pt
 output:
-  ioslides_presentation:
-    fig_caption: yes
-    incremental: no
+  beamer_presentation: 
+    df_print: kable
+    fig_caption: no
+    fig_height: 6
+    fig_width: 7
+    includes:
+      in_header: header.tex
+    latex_engine: pdflatex
+    slide_level: 2
+    theme: metropolis
 ---
 
 
 ```{r knitr_setup, include=FALSE, cache=FALSE}
 
-library(rmarkdown)
 library(knitr)
 
 ### Chunk options ###
 
 ## Text results
-opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, eval = TRUE, size = 'footnotesize')
 
 ## Code decoration
-opts_chunk$set(tidy=FALSE, comment = NA, highlight = TRUE, crop = TRUE)
+opts_chunk$set(tidy = FALSE, comment = NA, highlight = TRUE, prompt = FALSE, crop = TRUE)
 
 # ## Cache
-opts_chunk$set(cache = 2, cache.path = "knitr_output/cache/")
-# opts_chunk$set(cache.extra = rand_seed)
-# 
+opts_chunk$set(cache = TRUE, cache.path = "knitr_output/cache/")
+
 # ## Plots
 opts_chunk$set(fig.path = "knitr_output/figures/")
-opts_chunk$set(fig.height = 5, fig.width = 6, fig.align = 'center')   
+opts_chunk$set(fig.align = 'center')
 
 ### Hooks ###
 ## Crop plot margins
-knit_hooks$set(crop = hook_pdfcrop)  
+knit_hooks$set(crop = hook_pdfcrop)
+
+## Reduce font size
+# see http://stackoverflow.com/a/39961605
+knit_hooks$set(smallfont = function(before, options, envir) {
+  if (before) return(paste0("\n \\", options$size, "\n\n"))
+  else return("\n\n \\normalsize \n")
+  })
 
 ```
 
 
-## This is a practical workshop
+## Bayesian modelling is growing fast
 
-BUT do read the literature e.g.
+```{r out.width='4in', out.height='2in'}
+include_graphics("images/Clark2005_title.png")
+```
+
+- Powerful
+- Flexible
+- Knowledge synthesis
+- Uncertainty
+
+
+----
+
+Even if you don't become Bayesian today,
+
+this workshop will help you to understand
+
+regression and 'mixed-effects' models better.
+
+
+
+## Practical workshop: we'll see main concepts, but do read the literature!
+
+**General**
 
 - [Data analysis using regression and multilevel/hierarchical models](http://www.stat.columbia.edu/~gelman/arm/)
 
-- [Bayesian data analysis](http://www.stat.columbia.edu/~gelman/book/)
+- [Statistical Rethinking: A Bayesian Course with Examples in R and Stan](http://xcelab.net/rm/statistical-rethinking/)
 
-- [Bayesian methods for ecology](http://www.cambridge.org/us/academic/subjects/life-sciences/ecology-and-conservation/bayesian-methods-ecology)
+- [Bayesian data analysis](http://www.stat.columbia.edu/~gelman/book/)
 
 - [The BUGS book](http://www.crcpress.com/product/isbn/9781584888499)
 
-- [Introduction to WinBUGS for ecologists](http://www.mbr-pwrc.usgs.gov/software/kerybook/)
+- [Doing Bayesian data analysis: a tutorial with R, JAGS, and STAN](https://sites.google.com/site/doingbayesiandataanalysis/)
+
+- [Bayesian linear mixed models using Stan: a tutorial](http://www.tqmp.org/RegularArticles/vol12-3/p175/p175.pdf)
+
+- [Bayesian basics](http://m-clark.github.io/docs/IntroBayes.html)
+
+- [Philosophy and the practice of Bayesian statistics](http://www.stat.columbia.edu/~gelman/research/published/philosophy.pdf)
+
+
+
+
+## Practical workshop: we'll see main concepts, but do read the literature!
+
+**Ecology-oriented**
+
+- [The ecological detective: confronting models with data](http://press.princeton.edu/titles/5987.html)
+
+- [Bayesian methods for ecology](http://www.cambridge.org/us/academic/subjects/life-sciences/ecology-and-conservation/bayesian-methods-ecology)
 
 - [Models for ecological data](http://press.princeton.edu/titles/8348.html)
 
-- and many more
+- [Introduction to WinBUGS for ecologists](http://www.mbr-pwrc.usgs.gov/software/kerybook/)
+
+- [Applied hierarchical modeling in ecology](http://www.mbr-pwrc.usgs.gov/pubanalysis/keryroylebook/)
+
+- [Bayesian Models: A Statistical Primer for Ecologists](http://press.princeton.edu/titles/10523.html)
+
+
+- and more...
 
 
 
@@ -69,26 +130,76 @@ BUT do read the literature e.g.
 
 
 
-## Why JAGS? {.build}
 
-- Very similar to BUGS, both very popular
-- Gate to other software e.g. STAN, Filzbach, etc
-- Easy to start, can deal with complex models too (open-ended modelling)
-- But look for specific implementations of your analysis (e.g. hSDM)
+## We'll focus on JAGS and STAN
 
-
-## Why R?
-
-[Just kidding](http://lmgtfy.com/?q=why+r)
-
-:)
+- Fast, powerful, and most popular
+- Similar to BUGS 
+- Easy to start
+- Open-ended modelling: deal with complex models too
+- But look for specific implementations of your analysis (e.g. hSDM, rstanarm)
+- Once concepts understood, switching software not difficult
 
 
+## JAGS has to be installed independently
+
+http://mcmc-jags.sourceforge.net/
+
+Use latest version (4.2.0)
+
+
+
+## Calling JAGS from R
+
+- [rjags](https://cran.r-project.org/package=rjags)
+
+- [R2jags](https://cran.r-project.org/package=R2jags)
+
+- [runjags](https://cran.r-project.org/web/packages/runjags/)
+
+- [jagsUI](https://cran.r-project.org/package=jagsUI)
+
+- [dclone](https://cran.r-project.org/package=dclone)
+
+- [rube](http://stat.cmu.edu/~hseltman/rube/)
+
+
+
+## Calling STAN from R
+
+- [rstan](https://cran.r-project.org/package=rstan)
+
+- [rstanarm](https://cran.r-project.org/package=rstanarm)
+
+- [rethinking](https://github.com/rmcelreath/rethinking)
+
+- [brms](https://cran.r-project.org/package=brms)
+
+
+
+## We will also need these R packages:
+
+```{r echo=TRUE, eval=FALSE, cache=FALSE}
+library(arm)
+library(R2jags)
+library(ggmcmc)
+library(shinystan)
+library(rube)
+library(lme4)
+library(rstan)
+library(rstanarm)
+```
+
+and their dependencies
+
+
+# The very basics: linear regression
 
 
 ## The very basics: linear regression
 
-<div class="columns-2">
+\begincols
+\begincol
 
 ```{r reg1, echo=FALSE, fig.align='left', fig.height=5, fig.width=4}
 data(iris)
@@ -97,39 +208,36 @@ plot(setosa[,3], setosa[,4], xlab = "x", ylab = "y", ylim = c(0,0.65),
      pch=19, las = 1, cex.lab = 1.5)
 abline(lm(setosa[,4] ~ setosa[,3]), lwd = 3)
 ```
+\endcol
 
-
+\begincol
 $$
-  \begin{aligned}
-  y_{i} = a + bx_{i} + \epsilon_{i}
-  \end{aligned}
+  y_{i} = a + bx_{i} + \epsilon_{i} 
 $$
 
 **How many parameters?**
 
-</div>
+\endcol
+\endcols
 
 
 
 
-## The very basics: linear regression {.build}
+## The very basics: linear regression
 
 
-<div class="columns-2">
-
-
-```{r echo=FALSE, fig.align='left', fig.height=5, fig.width=4}
-plot(setosa[,3], setosa[,4], xlab = "x", ylab = "y", ylim = c(0,0.65), 
-     pch=19, las = 1, cex.lab = 1.5)
-abline(lm(setosa[,4] ~ setosa[,3]), lwd = 3)
+\begincols
+\begincol
+```{r out.width='2in', out.height='2in'}
+include_graphics("images/normal_distr.png")
 ```
+\endcol
 
-
+\begincol
 $$
   \begin{aligned}
   y_{i} = a + bx_{i} + \epsilon_{i} \\
-  \\
-  \epsilon \sim N\left( 0 ,\sigma ^{2}\right) \\  
+  \epsilon_{i} \sim N(0, \sigma^2)   
   \end{aligned}
 $$
 
@@ -137,13 +245,13 @@ Or also
 
 $$
   \begin{aligned}
-  y_{i} \sim N\left( \mu_{i} ,\sigma ^{2}\right) \\
-  \\
-  \mu_{i} = a + bx_{i} \\
+  y_{i} \sim N(\mu_{i}, \sigma^2) \\
+  \mu_{i} = a + bx_{i} 
   \end{aligned}
 $$
 
-</div>
+\endcol
+\endcols
 
 
 
@@ -151,14 +259,16 @@ $$
 
 ## Our dataset: tree heights and DBH
 
+http://tinyurl.com/treesdata
+
 - One species
 - 10 plots
 - 1000 trees
 - Number of trees per plot ranging from 4 to 392
 
-```{r echo=TRUE, eval=TRUE}
+```{r echo=TRUE}
 trees <- read.csv("trees.csv")
-summary(trees[,1:3])
+summary(trees[, 1:3])
 ```
 
 
@@ -174,10 +284,9 @@ plot(trees$dbh, trees$height, pch=20, las=1, cex.lab=1.4, xlab="DBH (cm)", ylab=
 
 ## First step: linear regression (lm)
 
-```{r lm, echo=2:3, message=FALSE}
-library(arm)
-simple.lm <- lm(height ~ dbh, data=trees)
-arm::display(simple.lm)
+```{r lm, echo=TRUE, message=FALSE}
+simple.lm <- lm(height ~ dbh, data = trees)
+arm::display(simple.lm)  # summary of key model elements
 ```
 
 **Interpretation?**
@@ -186,7 +295,7 @@ arm::display(simple.lm)
 
 ## Always centre continuous variables
 
-```{r}
+```{r echo=TRUE}
 summary(trees$dbh)
 trees$dbh.c <- trees$dbh - 25
 ```
@@ -198,19 +307,23 @@ So, all parameters will be referred to a 25 cm DBH tree.
 
 ## Linear regression with centred DBH
 
-<div class="columns-2">
-
+\begincols
+\begincol
 ```{r echo=FALSE, fig.align='left', fig.width=4, fig.height=4}
 plot(trees$dbh.c, trees$height, pch=20, las=1, cex.lab=1.4, xlab="DBH (cm)", ylab="Height (m)")
 abline(lm(height ~ dbh.c, data=trees), col="red", lwd=3)
 ```
+\endcol
 
-```{r echo=FALSE}
-simple.lm <- lm(height ~ dbh.c, data=trees)
+\begincol
+
+```{r echo=FALSE, smallfont=TRUE, cache=FALSE}
+library(arm)
+simple.lm <- lm(height ~ dbh.c, data = trees)
 display(simple.lm)
 ```
-
-</div>
+\endcol
+\endcols
 
 
 
@@ -218,39 +331,89 @@ display(simple.lm)
 
 ## Let's make it Bayesian
 
-```{r message=FALSE, echo=FALSE}
-library(R2jags)
-set.seed(123)
-```
-
 **Things we'll need**
 
-- Data
 - A function describing the model (including **priors**)
-- Decide number of MCMC chains
-- Define initial values
-- Decide number of iterations (and burnin)
+- Data
 - Choose parameters to save
+- Define initial values for MCMC chains
+- Decide number of iterations (and burnin)
 
+
+
+
+## Remember our model structure
+
+$$
+  \begin{aligned}
+  y_{i} \sim N(\mu_{i}, \sigma^2) \\ 
+  \mu_{i} = \alpha + \beta x_{i} 
+  \end{aligned}
+$$
+
+In this case:
+
+$$
+  \begin{aligned}
+  Height_{i} \sim N(\mu_{i}, \sigma^2)  \\
+  \mu_{i} = \alpha + \beta DBH_{i} 
+  \end{aligned}
+$$
+
+$\alpha$: expected height when DBH = 0
+
+$\beta$: how much height increases with every unit increase of DBH
+
+
+## JAGS uses precision instead of variance
+
+$$
+\tau = \frac{1}{\sigma^2} 
+$$
+So, residual variance $\sigma^2 = 100$ expressed as $\tau = 0.01$.
 
 
 
 
 ## Specify the model as an R function
 
-```{r}
-model1 <- function(){
+$$
+  \begin{aligned}
+  Height_{i} \sim N(\mu_{i}, \sigma^2)  \\
+  \mu_{i} = \alpha + \beta DBH_{i} 
+  \end{aligned}
+$$
+
+```{r echo=TRUE}
+bayes.lm <- function(){
   
   # LIKELIHOOD
   for (i in 1:length(height)){
-    height[i] ~ dnorm(mu[i], tau)    # tau = precision (inverse of variance)
-    mu[i] <- alfa + beta*dbhc[i]     # centred diameter
+    height[i] ~ dnorm(mu[i], tau)    # tau=precision (inverse var)
+    mu[i] <- alpha + beta*dbhc[i]    # expected height ~ dbhc
+  }
+
+}
+```
+
+
+
+
+## We need priors for every parameter!
+
+```{r echo=TRUE, smallfont=TRUE}
+bayes.lm <- function(){
+  
+  # LIKELIHOOD
+  for (i in 1:length(height)){
+    height[i] ~ dnorm(mu[i], tau)    # tau = precision (inverse var)
+    mu[i] <- alpha + beta*dbhc[i]    # expected height ~ dbhc
   }
   
   # PRIORS (vague or weakly informative)
-  alfa ~ dunif(1, 100)      # prior for average height of a 25-cm-DBH tree
+  alpha ~ dunif(1, 100)     # prior avg height of 25-cm-DBH tree
   beta ~ dunif(0, 10)       # how much do we expect height to scale with DBH?
-  tau <- pow(sigma, -2)       # tau = 1/sigma^2
+  tau <- 1/(sigma*sigma)    # tau = 1/sigma^2
   sigma ~ dunif(0, 50)      # residual standard deviation
 }
 ```
@@ -266,13 +429,23 @@ Use *weakly informative* (e.g. bounded Uniform, Normal with reasonable parameter
 
 or *strongly informative* priors based on previous knowledge and common sense.
 
+Some tips for setting priors: 
+
+- https://github.com/stan-dev/stan/wiki/Prior-Choice-Recommendations
+
+- http://www.mrc-bsu.cam.ac.uk/wp-content/uploads/bugsbook_chapter5.pdf
+
+Usually good idea to try different priors and evaluate posterior sensitivity
+
+Or run model without likelihood (priors only).
 
 
 
 ## Example: estimating people height across countries
 
 
-<div class="columns-2">
+\begincols
+\begincol
 
 Unreasonable prior
 
@@ -280,7 +453,9 @@ Unreasonable prior
 plot(density(rnorm(1000, 0, 1000)),   
      main="", xlab="Height (m)")
 ```
+\endcol
 
+\begincol
 
 Reasonable prior
 
@@ -288,83 +463,131 @@ Reasonable prior
 plot(density(rnorm(1000, 2, 0.5)),   
       main="", xlab="Height (m)")
 ```
-
-</div>
+\endcol
+\endcols
 
 (*from STAN manual*)
 
 
 
-## Next step: create list with data
+## We already have our model definition
 
-
-```{r}
-data <- list(height = trees$height,  
-             dbhc = trees$dbh.c)
+```{r echo=TRUE}
+bayes.lm <- function(){
+  
+  # LIKELIHOOD
+  for (i in 1:length(height)){
+    height[i] ~ dnorm(mu[i], tau)    # tau = precision (inverse of variance)
+    mu[i] <- alpha + beta*dbhc[i]    # centred diameter
+  }
+  
+  # PRIORS (vague or weakly informative)
+  alpha ~ dunif(1, 100)     # prior for average height of a 25-cm-DBH tree
+  beta ~ dunif(0, 10)       # how much do we expect height to scale with DBH?
+  tau <- 1/(sigma*sigma)    # tau = 1/sigma^2
+  sigma ~ dunif(0, 50)      # residual standard deviation
+}
 ```
 
+
+
+
+## Next step: create list with data
+
+Data = known values
+
+```{r echo=TRUE}
+data <- list(height = trees$height,  # response
+             dbhc = trees$dbh.c)     # predictor
+```
+
+
+
+
+## Next step: choose parameters to save
+
+```{r echo=TRUE}
+params <- c("alpha", "beta", "sigma")
+```
 
 
 
 ## Now call JAGS to run the model
 
 
-```{r}
+```{r echo=TRUE, cache=FALSE}
+library(R2jags)
+```
+
+```{r echo=TRUE, results='hide'}
 m1 <- jags(data,  
-           model.file=model1,  
-           parameters.to.save = c("alfa", "beta", "sigma"),  
-           n.chains=3,  
-           inits=NULL,  
-           n.iter=10,  
-           n.burnin=5) 
+           model.file = bayes.lm,  
+           parameters.to.save = params,  
+           n.chains = 3,  
+           inits = NULL,   # JAGS will create inits for each chain
+           n.iter = 10,    # number of iterations
+           n.burnin = 5)   # iterations to discard (before convergence)
 ```
 
  
 
-## Viewing MCMC in action
+## Traceplots: viewing MCMC in action
 
-```{r echo=1}
-traceplot(m1, ask=FALSE, mfrow=c(2,2))
+```{r echo=1, fig.height=5, fig.width=6}
+traceplot(m1, ask = FALSE, mfrow = c(2, 2))
 par(mfrow=c(1,1))
 ```
 
 Obviously we haven't achieved convergence yet...
 
 
+## Viewing MCMC in action (II)
+
+[![](images/metrop.gif)](http://mbjoseph.github.io/images/metrop.gif)
+
+Source: http://mbjoseph.github.io/2013/09/08/metropolis.html
+
 
 ## Let's run JAGS for longer
 
-```{r echo=1}
+```{r echo=TRUE, results='hide'}
 m1 <- jags(data,  
-           model.file=model1,  
-           parameters.to.save = c("alfa", "beta", "sigma"),  
-           n.chains=3,  
-           inits=NULL,  
-           n.iter=10000,  
-           n.burnin=5000)   
+           model.file = bayes.lm,  
+           parameters.to.save = params,  
+           n.chains = 3,  
+           inits = NULL,  
+           n.iter = 10000,    # 10000 MCMC iterations
+           n.burnin = 5000)   # discard first half (5000 iterations)
 ```
 
 
 
 
-## Traceplots
+## Use traceplots to asess convergence
 
 ```{r echo=1}
-traceplot(m1, ask=FALSE, mfrow=c(2,2))
+traceplot(m1, ask = FALSE, mfrow = c(2, 2))
 par(mfrow=c(1,1))
 ```
 
 
 
 
-## Results
+## Results: parameter estimates
 
 ```{r echo=FALSE}
 print(m1, intervals=c(0.025, 0.975))
-#display(simple.lm)
 ```
 
-Results pretty similar to simple.lm (because of vague priors)
+
+## Compare with `simple.lm`
+
+```{r}
+display(simple.lm)
+```
+
+Results pretty similar, because of vague priors
+
  
 
 ## A plot of the whole model
@@ -375,29 +598,120 @@ plot(m1)
 
 
 
-## Comparing prior and posterior densities
+# Model checking 
 
-```{r echo=FALSE}
+## Using ggmcmc to produce diagnostic plots
+
+```{r echo=TRUE}
+suppressPackageStartupMessages(library(ggmcmc))
+m1.mcmc <- as.mcmc(m1)   # Get list of MCMC values
+m1.tidy = ggs(m1.mcmc)   # Produce tidy data frame
+ggmcmc(m1.tidy)
+```
+
+
+This generates a PDF file with diagnostic plots for all parameters! (`ggmcmc-output.pdf`)
+
+
+
+
+## ggmcmc output sample
+
+\begincols
+\begincol
+```{r}
+include_graphics("images/ggmcmc_out1.png")
+```
+\endcol
+
+\begincol
+```{r}
+include_graphics("images/ggmcmc_out2.png")
+```
+\endcol
+\endcols
+
+
+
+## shinystan: assess model interactively
+
+```{r eval=FALSE, echo=TRUE}
+library(shinystan)
+launch_shinystan(as.shinystan(m1.mcmc))
+```
+
+
+
+## Comparing prior and posterior
+
+```{r echo=FALSE, eval=FALSE}
 curve(dunif(x, 1, 100), from = 1, to = 100, 
-      lwd = 2, col = "red", main="Height of average 25-cm DBH tree (alfa)", xlab="Height (m)", ylab = "", 
+      lwd = 2, col = "red", main="Height of average 25-cm DBH tree (alpha)", xlab="Height (m)", ylab = "", 
       las = 1, ylim = c(0, 0.1))
-lines(density(m1$BUGSoutput$sims.list$alfa), lwd=2, col="blue")
+lines(density(m1$BUGSoutput$sims.list$alpha), lwd=2, col="blue")
 legend("topright", c("prior", "posterior"), col = c("red", "blue"), lty = 1, bty = "n")
 
 ```
 
 
+## Comparing prior and posterior
 
-## Comparing prior and posterior densities
+```{r echo=TRUE, cache=FALSE}
+library(rube)
+priPost(post = m1$BUGSoutput$sims.list$alpha[, 1], 
+        dist = "Uniform", pripar = c(1, 100))
+```
+
+
+
+## Comparing prior and posterior (sigma)
+
+```{r echo=TRUE}
+priPost(post = m1$BUGSoutput$sims.list$sigma[, 1], 
+        dist = "Uniform", pripar = c(0, 50))
+```
+
+
+
+## Observed vs Predicted values
 
 ```{r echo=FALSE}
-curve(dunif(x, 0, 50), from = 0, to = 50, 
-      lwd = 2, col = "red", main="Residual sd (sigma)", xlab="Residual sd (m)", ylab = "", 
-      las = 1, ylim = c(0, 0.1))
-lines(density(m1$BUGSoutput$sims.list$sigma), lwd=2, col="blue")
-legend("topright", c("prior", "posterior"), col = c("red", "blue"), lty = 1, bty = "n")
+alpha.avg <- mean(m1$BUGSoutput$sims.list$alpha)
+beta.avg <- mean(m1$BUGSoutput$sims.list$beta)
+mu <- alpha.avg + beta.avg*trees$dbh.c
+plot(trees$height, mu, 
+     xlim = c(0, 60), ylim = c(0, 60),
+     xlab = "Observed height (m)", ylab = "Predicted height (m)")
+abline(a = 0, b = 1)
 ```
 
+How would you do this?
+
+
+## Observed vs Predicted values
+
+```{r echo=TRUE, fig.height=2, fig.width=3}
+alpha.avg <- mean(m1$BUGSoutput$sims.list$alpha)
+beta.avg <- mean(m1$BUGSoutput$sims.list$beta)
+mu <- alpha.avg + beta.avg*trees$dbh.c
+plot(trees$height, mu, 
+     xlim = c(0, 60), ylim = c(0, 60),
+     xlab = "Observed height (m)", ylab = "Predicted height (m)")
+abline(a = 0, b = 1)
+```
+
+
+
+## Residuals
+
+```{r echo=FALSE}
+residuals <- trees$height - mu
+hist(residuals)
+```
+
+
+
+## posterior predictive distribution
 
 
 
@@ -406,41 +720,41 @@ legend("topright", c("prior", "posterior"), col = c("red", "blue"), lty = 1, bty
 
 ## Model with Normal priors
 
-```{r}
-model1b <- function(){
+```{r echo=TRUE}
+bayes.lm.N <- function(){
   
   # LIKELIHOOD
   for (i in 1:length(height)){
     height[i] ~ dnorm(mu[i], tau)    # tau = precision (inverse of variance)
-    mu[i] <- alfa + beta*dbhc[i]     # centred diameter
+    mu[i] <- alpha + beta*dbhc[i]    # centred diameter
   }
   
   # PRIORS 
-  alfa ~ dnorm(0, 0.001)      # prior for intercept
-  beta ~ dnorm(0, 0.001)       # prior for beta (slope)
-  tau <- pow(sigma, -2)       # tau = 1/sigma^2
-  sigma ~ dunif(0, 50)      # residual standard deviation
+  alpha ~ dnorm(0, 0.01)      # prior for intercept
+  beta ~ dnorm(0, 0.01)       # prior for beta (slope)
+  tau <- 1/(sigma*sigma)      # tau = 1/sigma^2
+  sigma ~ dunif(0, 50)        # residual standard deviation
 }
 ```
 
 
 ## Calling JAGS
 
-```{r echo=TRUE}
-m1 <- jags(data,  
-           model.file=model1b,  
-           parameters.to.save = c("alfa", "beta", "sigma"),  
-           n.chains=3,  
-           inits=NULL,  
-           n.iter=10000,  
-           n.burnin=5000)  
+```{r echo=TRUE, results='hide'}
+m1b <- jags(data,  
+           model.file = bayes.lm.N,  
+           parameters.to.save = params,  
+           n.chains = 3,  
+           inits = NULL,  
+           n.iter = 4000,  
+           n.burnin = 2000)  
 ```
 
 
-## Results
+## Results with Normal priors on intercept and slope
 
 ```{r echo=FALSE}
-print(m1, intervals=c(0.025, 0.975))
+print(m1b, intervals=c(0.025, 0.975))
 ```
 
 
@@ -448,16 +762,79 @@ Very similar
 
 
 
+## Let's try strongly informative prior on alpha
 
-
-## Bayesian inference
-
-![](images/bayes_theorem2.png)  
+```{r echo=TRUE}
+bayes.lm.N2 <- function(){
   
-<br>
-<br>
+  # LIKELIHOOD
+  for (i in 1:length(height)){
+    height[i] ~ dnorm(mu[i], tau)    # tau = precision (inverse of variance)
+    mu[i] <- alpha + beta*dbhc[i]    # centred diameter
+  }
+  
+  # PRIORS 
+  alpha ~ dnorm(10, 10)      # prior for intercept
+  beta ~ dnorm(0, 0.01)      # prior for beta (slope)
+  tau <- 1/(sigma*sigma)     # tau = 1/sigma^2
+  sigma ~ dunif(0, 50)       # residual standard deviation
+}
+```
 
-![](images/bayes_theorem.png)
+
+
+
+## Calling JAGS
+
+```{r echo=TRUE, results='hide'}
+m1c <- jags(data,  
+           model.file = bayes.lm.N2,  
+           parameters.to.save = params,  
+           n.chains = 3,  
+           inits = NULL,  
+           n.iter = 4000,  
+           n.burnin = 2000)  
+```
+
+
+## Posteriors: between prior and likelihood
+
+```{r echo=FALSE}
+print(m1c, intervals=c(0.025, 0.975))
+```
+
+
+## Prior vs Posterior
+
+```{r echo=TRUE}
+priPost(post = m1c$BUGSoutput$sims.list$alpha[,1],
+        dist = "Normal", pripar = c(10, 0.1))
+```
+
+
+
+
+
+# Bayesian inference
+
+## Bayes theorem: prior, likelihood, posterior
+
+
+$$
+P(Hypothesis | Data) = \frac{P(Data | Hypothesis) P(Hypothesis)}{P(Data)}
+$$
+
+
+$$
+P(Hypothesis | Data) \propto P(Data | Hypothesis) \times P(Hypothesis)
+$$
+
+
+$$
+Posterior \propto Likelihood \times Prior
+$$
+
+Hence, prior influence decreases with size of data set.
 
 
 
@@ -487,7 +864,7 @@ for(i in 2:10){
 ## lm results
 
 ```{r echo = 1}
-lm.plot <- lm(height ~ factor(plot) + dbh.c, data=trees)
+lm.plot <- lm(height ~ factor(plot) + dbh.c, data = trees)
 display(lm.plot)
 ```
 
@@ -496,15 +873,16 @@ display(lm.plot)
 
 ## Single vs varying intercept
 
-<div class="columns-2">
-
+\begincols
+\begincol
 ```{r single_interc, echo=FALSE, fig.height=5, fig.width=4}
 plot(height ~ dbh, data=trees, las=1, xlab="DBH (cm)", ylab="Height (m)", ylim = c(0, 60), 
      main = "Pooling all plots")
 abline(lm(height ~ dbh, data=trees), lwd=4, col="red")
 ```
+\endcol
 
-
+\begincol
 ```{r varying_interc, echo=FALSE, fig.height=5, fig.width=4}
 lm2 <- lm(height ~ factor(plot) + dbh, data = trees)
 plot(trees$dbh[plot.id==1], trees$height[plot.id==1], 
@@ -516,8 +894,8 @@ for(i in 2:10){
   abline(a=coef(lm2)[1] + coef(lm2)[i], b=coef(lm2)[11], col=i, lwd=2)
 }
 ```
-
-</div>
+\endcol
+\endcols
 
 
 
@@ -527,67 +905,84 @@ for(i in 2:10){
 
 **Things we'll need**
 
-- Data
 - A function describing the model (including **priors**)
-- number of MCMC chains
-- initial values
-- number of iterations (and burnin)
-- parameters to save
+- Data
+- Choose parameters to save
+- Define initial values for MCMC chains
+- Decide number of iterations (and burnin)
 
 
 
 ## Bayesian varying-intercept model with no pooling
 
-```{r}
-model2 <- function(){
+```{r echo=TRUE}
+varint.nopool <- function(){
   # LIKELIHOOD
   for (i in 1:length(height)){
     height[i] ~ dnorm(mu[i], tau)    # tau = precision (inverse of variance)
-    mu[i] <- alfa[plot[i]] + beta*dbhc[i]     # centred diameter
+    mu[i] <- alpha[plot[i]] + beta*dbhc[i]     # centred diameter
   }
   # PRIORS
-  #alfa ~ dnorm(0, .001)   
+  #alpha ~ dnorm(0, .001)      # previous model
   for (j in 1:10){
-    alfa[j] ~ dnorm(0, .001)  # Plot effects drawn from Normal distribution 
-                              # with large **fixed** variance
+    alpha[j] ~ dnorm(0, .001)  # Plot effects drawn from Normal distribution 
+                               # with large **fixed** variance
   }
   beta ~ dnorm(0, .001)
-  tau <- pow(sigma, -2)       # tau = 1/sigma^2
+  tau <- 1/(sigma*sigma)       # tau = 1/sigma^2
   sigma ~ dunif(0, 50)
 }
 ```
 
-This fits same model as `lm.plot`
+**This fits same model as `lm.plot`**
 
 
 
 
 ## Call JAGS
 
-```{r}
-data <- list(height=trees$height, 
-             dbhc=trees$dbh.c, 
-             plot=trees$plot)
+```{r echo=TRUE, results='hide'}
+data <- list(height = trees$height, 
+             dbhc = trees$dbh.c, 
+             plot = trees$plot)
 m2 <- jags(data,  
-           model.file=model2,  
-           parameters.to.save = c("alfa", "beta", "sigma"),  
-           n.chains=3,  
-           inits=NULL,  
-           n.iter=10000,  
-           n.burnin=5000) 
+           model.file = varint.nopool,  
+           parameters.to.save = params,  
+           n.chains = 3,  
+           inits = NULL,  
+           n.iter = 4000,  
+           n.burnin = 2000) 
+```
+
+
+## Running JAGS in parallel (multiple cores)
+
+```{r echo=TRUE}
+m2 <- jags.parallel(data,  
+           model.file = varint.nopool,  
+           parameters.to.save = params,  
+           n.chains = 3,  
+           inits = NULL,  
+           n.iter = 4000,  
+           n.burnin = 2000) 
 ```
 
 
 
 
-## Results
+## Results of Bayesian varying intercept model without pooling
 
 ```{r echo=FALSE}
 print(m2, intervals=c(0.025, 0.975))
-#display(lm.plot)
 ```
 
-Same results as `lm.plot`
+
+## Same results as `lm.plot`
+
+```{r}
+display(lm.plot)
+```
+
  
 
 ## Plot whole model
@@ -598,21 +993,25 @@ plot(m2)
 
 
 
-## The varying-intercept model is much better
+## The varying-intercept model seems better
+
+Based on Deviance Information Criterion (DIC)
 
 DIC(m1) = `r round(m1$BUGSoutput$DIC)`
 
 DIC(m2) = `r round(m2$BUGSoutput$DIC)`
 
+But note DIC (as AIC and BIC) have been criticised
 
+WAIC and cross-validation are preferred alternatives.
 
 
 ## Estimation of plot effects improves with sample size
 
 ```{r coefplot1, echo=FALSE}
-mean.alfa <- apply(m2$BUGSoutput$sims.list$alfa,2, mean)
-sd.alfa <- apply(m2$BUGSoutput$sims.list$alfa,2, sd)
-coefplot(mean.alfa, sd.alfa, cex.var=1.2, cex.pts=1.5, vertical=FALSE,
+mean.alpha <- apply(m2$BUGSoutput$sims.list$alpha, 2, mean)
+sd.alpha <- apply(m2$BUGSoutput$sims.list$alpha, 2, sd)
+coefplot(mean.alpha, sd.alpha, cex.var=1.2, cex.pts=1.5, vertical=FALSE,
          main="Average height of a 25-cm DBH tree in each plot", 
          xlab="Trees per plot", ylim=c(20,40), ylab="Height (m)", cex.lab=1.2,
          var.las=1, varnames=summary(factor(trees$plot)))
@@ -624,16 +1023,16 @@ coefplot(mean.alfa, sd.alfa, cex.var=1.2, cex.pts=1.5, vertical=FALSE,
 
 
 
-# Varying-intercepts **with pooling** | (mixed/multilevel/hierarchical model)
+# Varying-intercepts with pooling (shrinkage)
 
 
 ## Multilevel model with varying intercepts
 
 $$
   \begin{aligned}
-  y_{i}=a_{j}+bx_{i}+\varepsilon _{i} \\
-  a_{j} \sim N\left( 0,\tau^2 \right) \\
-  \varepsilon _{i}\sim N\left( 0,\sigma^2 \right) \\
+  y_{i} = a_{j} + bx_{i} + \varepsilon_{i}  \\
+  a_{j} \sim N(0, \tau^2)  \\
+  \varepsilon_{i} \sim N(0, \sigma^2) 
   \end{aligned}
 $$
 
@@ -641,19 +1040,18 @@ In our example:
 
 $$
   \begin{aligned}
-  Height_{i}=plot_{j}+bDBH_{i}+\varepsilon _{i} \\
-  plot_{j} \sim N\left( 0,\tau^2 \right) \\
-  \varepsilon _{i}\sim N\left( 0,\sigma^2 \right) \\
+  Height_{i} = plot_{j} + bDBH_{i} + \varepsilon_{i}  \\
+  plot_{j} \sim N(0, \tau^2)  \\
+  \varepsilon_{i} \sim N(0, \sigma^2) 
   \end{aligned}
 $$
-
 
 
 
 ## Fitting mixed models with lmer
 
 
-```{r mixed, echo=2}
+```{r mixed, echo=2, cache=FALSE}
 library(lme4)
 mixed <- lmer(height ~ dbh.c + (1|plot), data = trees)
 display(mixed)
@@ -662,7 +1060,7 @@ display(mixed)
 
 ## lmer coefficients
 
-```{r}
+```{r echo=TRUE}
 coef(mixed)
 ```
 
@@ -670,23 +1068,23 @@ coef(mixed)
 
 ## Bayesian varying-intercept model with pooling across plots
 
-```{r}
-model3 <- function(){
+```{r echo=TRUE}
+varint.pool <- function(){
     # LIKELIHOOD
   for (i in 1:length(height)){
     height[i] ~ dnorm(mu[i], tau)    # tau = precision (inverse of variance)
-    mu[i] <- alfa[plot[i]] + beta*dbhc[i]     # centred diameter
+    mu[i] <- alpha[plot[i]] + beta*dbhc[i]     # centred diameter
   }
     # PRIORS
   for (j in 1:10){
-    alfa[j] ~ dnorm(grandmu, tauplot)   # Now we are estimating the plot variance!
+    alpha[j] ~ dnorm(grandmu, tauplot)  # Now we are estimating the plot variance!
   }
   grandmu ~ dnorm(0, .001)     # Overall mean height across all plots
-  tauplot <- pow(sigmaplot, -2)
-  sigmaplot ~ dunif(0, 20)    # between-plot variance
+  tauplot <- 1/(sigmaplot*sigmaplot)
+  sigmaplot ~ dunif(0, 20)     # between-plot variance
   beta ~ dnorm(0, .001)
-  tau <- pow(sigma, -2)       
-  sigma ~ dunif(0, 50)     # residual variance
+  tau <- 1/(sigma*sigma)       
+  sigma ~ dunif(0, 50)         # residual variance
 }
 ```
 
@@ -695,24 +1093,24 @@ model3 <- function(){
 
 ## Call JAGS
 
-```{r}
-data <- list(height=trees$height,  
-             dbhc=trees$dbh.c,  
-             plot=trees$plot)
-m3 <- jags(data,  
-           model.file=model3,  
-           parameters.to.save = c("alfa", "beta", "sigma", "grandmu", "sigmaplot"),  
-           n.chains=3,  
-           inits=NULL,  
-           n.iter=10000,  
-           n.burnin=5000) 
+```{r echo=TRUE}
+data <- list(height = trees$height,  
+             dbhc = trees$dbh.c,  
+             plot = trees$plot)
+m3 <- jags.parallel(data,  
+           model.file = varint.pool,  
+           parameters.to.save = c("alpha", "beta", "sigma", "grandmu", "sigmaplot"),  
+           n.chains = 3,  
+           inits = NULL,  
+           n.iter = 4000,  
+           n.burnin = 2000) 
 ```
 
 
 
 
 
-## Results
+## Results of multilevel model with pooling
 
 ```{r echo=FALSE}
 print(m3, intervals=c(0.025, 0.975))
@@ -732,15 +1130,15 @@ plot(m3)
 ## Comparing plot coefficients
 
 ```{r coefplot1b, echo=FALSE}
-mean.alfa <- apply(m2$BUGSoutput$sims.list$alfa,2, mean)
-sd.alfa <- apply(m2$BUGSoutput$sims.list$alfa,2, sd)
-coefplot(mean.alfa, sd.alfa, cex.var=1.2, cex.pts=2, vertical=FALSE,
+mean.alpha <- apply(m2$BUGSoutput$sims.list$alpha, 2, mean)
+sd.alpha <- apply(m2$BUGSoutput$sims.list$alpha, 2, sd)
+coefplot(mean.alpha, sd.alpha, cex.var=1.2, cex.pts=2, vertical=FALSE,
          main="Average height of a 25-cm DBH tree in each plot", 
          xlab="Trees per plot", ylim=c(20,40), ylab="Height (m)", cex.lab=1.2,
          var.las=1, varnames=summary(factor(trees$plot)))
-mean.alfa <- apply(m3$BUGSoutput$sims.list$alfa,2, mean)
-sd.alfa <- apply(m3$BUGSoutput$sims.list$alfa,2, sd)
-coefplot(mean.alfa, sd.alfa, cex.var=1.2, cex.pts=2, vertical=FALSE,
+mean.alpha <- apply(m3$BUGSoutput$sims.list$alpha, 2, mean)
+sd.alpha <- apply(m3$BUGSoutput$sims.list$alpha, 2, sd)
+coefplot(mean.alpha, sd.alpha, cex.var=1.2, cex.pts=2, vertical=FALSE,
          add=TRUE, offset=0.15, col="red",
          var.las=1, varnames=summary(factor(trees$plot)))
 
@@ -777,15 +1175,15 @@ par(mfrow=c(1,1))
 # Growing the hierarchy: adding plot-level predictors
 
 
-## Model with group-level predictors {.build}
+## Model with group-level predictors 
 
 We had:
 
 $$
   \begin{aligned}
-  y_{i}=a_{j}+bx_{i}+\varepsilon _{i} \\
-  a_{j} \sim N\left( 0,\tau^2 \right) \\
-  \varepsilon _{i}\sim N\left( 0,\sigma^2 \right) \\
+  y_{i} = a_{j} + bx_{i} + \varepsilon_{i}  \\
+  a_{j} \sim N(0, \tau^2)  \\
+  \varepsilon_{i} \sim N(0, \sigma^2) 
   \end{aligned}
 $$
 
@@ -794,10 +1192,10 @@ Now
 
 $$
   \begin{aligned}
-  y_{i}=a_{j}+bx_{i}+\varepsilon _{i} \\
-  a_{j} \sim N\left( \mu_{j},\tau^2 \right) \\
-  \mu_{j} = \gamma + \delta \cdot predictor_{j} \\
-  \varepsilon _{i}\sim N\left( 0,\sigma^2 \right) \\
+  y_{i} = a_{j} + bx_{i} + \varepsilon_{i}  \\
+  a_{j} \sim N(\mu_{j}, \tau^2)  \\
+  \mu_{j} = \gamma + \delta \cdot predictor_{j}  \\
+  \varepsilon_{i} \sim N(0, \sigma^2)
   \end{aligned}
 $$
   
@@ -816,23 +1214,23 @@ temp.c <- plotdata$temp - 15
 
 ## Model with group-level predictors
 
-```{r}
-model4 <- function(){
+```{r echo=TRUE}
+group.preds <- function(){
   # LIKELIHOOD
   for (i in 1:length(height)){
     height[i] ~ dnorm(mu[i], tau)    
-    mu[i] <- alfa[plot[i]] + beta*dbhc[i]    
+    mu[i] <- alpha[plot[i]] + beta*dbhc[i]    
   }
   # PRIORS
   for (j in 1:10){
-    alfa[j] ~ dnorm(grandmu + beta.temp*tempc[j], tauplot)   
+    alpha[j] ~ dnorm(grandmu + beta.temp*tempc[j], tauplot)   
   }
   beta.temp ~ dnorm(0, .001)   # slope for temperature effects
   grandmu ~ dnorm(0, .001)     
-  tauplot <- pow(sigmaplot, -2)
+  tauplot <- 1/(sigmaplot*sigmaplot)
   sigmaplot ~ dunif(0, 20)    
   beta ~ dnorm(0, .001)
-  tau <- pow(sigma, -2)       
+  tau <- 1/(sigma*sigma)       
   sigma ~ dunif(0, 50)     
 }
 ```
@@ -844,17 +1242,18 @@ model4 <- function(){
 
 ```{r echo=TRUE, message=FALSE}
 
-data <- list(height=trees$height, 
-             dbhc=trees$dbh.c, 
-             plot=trees$plot, 
-             tempc=temp.c)
-m4 <- jags(data,
-           model.file=model4,
-           parameters.to.save = c("alfa", "beta", "sigma", "grandmu", "sigmaplot", "beta.temp"),
-           n.chains=3,
-           inits=NULL,
-           n.iter=10000,
-           n.burnin=5000) 
+data <- list(height = trees$height, 
+             dbhc = trees$dbh.c, 
+             plot = trees$plot, 
+             tempc = temp.c)
+params = c("alpha","beta","sigma", "grandmu", "sigmaplot", "beta.temp")
+m4 <- jags.parallel(data,
+           model.file = group.preds,
+           parameters.to.save = params,
+           n.chains = 3,
+           inits = NULL,
+           n.iter = 4000,
+           n.burnin = 2000) 
 
 ```
 
@@ -863,8 +1262,10 @@ m4 <- jags(data,
 ## Average heights among plots related to temperature
 
 ```{r echo=FALSE, message=FALSE}
-mean.alfa <- apply(m4$BUGSoutput$sims.list$alfa,2, mean)
-plot(plotdata$temp, mean.alfa, pch=20, xlab="Temperature", main="Average height of a 25-cm DBH tree in the plot", ylab="Height (m)", cex.lab=1.2, las=1, cex=1.2)
+mean.alpha <- apply(m4$BUGSoutput$sims.list$alpha,2, mean)
+plot(plotdata$temp, mean.alpha, pch=20, xlab="Temperature", 
+     main="Average height of a 25-cm DBH tree in the plot", ylab="Height (m)", 
+     cex.lab=1.2, las=1, cex=1.2)
 
 ```
 
@@ -874,15 +1275,15 @@ plot(plotdata$temp, mean.alfa, pch=20, xlab="Temperature", main="Average height 
 ## Adding plot-level predictors (pooling) may improve parameter estimation
 
 ```{r echo=FALSE}
-mean.alfa <- apply(m2$BUGSoutput$sims.list$alfa,2, mean)
-sd.alfa <- apply(m2$BUGSoutput$sims.list$alfa,2, sd)
-coefplot(mean.alfa, sd.alfa, cex.var=1, cex.pts=1.5, vertical=FALSE,
+mean.alpha <- apply(m2$BUGSoutput$sims.list$alpha,2, mean)
+sd.alpha <- apply(m2$BUGSoutput$sims.list$alpha,2, sd)
+coefplot(mean.alpha, sd.alpha, cex.var=1, cex.pts=1.5, vertical=FALSE,
          main="Average height of a 25-cm DBH tree in each plot", 
          xlab="Trees per plot", ylim=c(20,40), ylab="Height (m)", cex.lab=1,
          var.las=1, varnames=summary(factor(trees$plot)))
-mean.alfa <- apply(m4$BUGSoutput$sims.list$alfa,2, mean)
-sd.alfa <- apply(m4$BUGSoutput$sims.list$alfa,2, sd)
-coefplot(mean.alfa, sd.alfa, cex.var=1, cex.pts=1.5, vertical=FALSE,
+mean.alpha <- apply(m4$BUGSoutput$sims.list$alpha,2, mean)
+sd.alpha <- apply(m4$BUGSoutput$sims.list$alpha,2, sd)
+coefplot(mean.alpha, sd.alpha, cex.var=1, cex.pts=1.5, vertical=FALSE,
          add=TRUE, offset=0.15, col="red",
          var.las=1, varnames=summary(factor(trees$plot)))
 
@@ -893,16 +1294,18 @@ coefplot(mean.alfa, sd.alfa, cex.var=1, cex.pts=1.5, vertical=FALSE,
 
 ![](images/shrinkage.png)
 
-From Gelman & Hill p. 253
+*From Gelman & Hill p. 253*
 
 
 
 ## Slopes can also vary...
 
 - and coefficients be estimated with pooling
-- but the correlation between slopes and intercepts must be modelled explicitly
-- see e.g. Gelman & Hill 2007, ch. 13.
+- but taking into account correlation between slopes and intercepts
+- (see e.g. Gelman & Hill 2007, ch. 13)
 
+
+# Recapitulating...
 
 
 ## So what's a multilevel/hierarchical model?
@@ -928,39 +1331,45 @@ Intercepts and/or slopes may vary, and can be modelled (sometimes including thei
 
 ## Datasets are stochastic realisations of a process
 
-<div class="columns-2">
-
+\begincols
+\begincol
 ```{r fig.align='left', fig.height=4, fig.width=4, echo=2}
 x=seq(from=10, to=20, length.out=100)
 data1=rnorm(100, 2 + 1.6*x, 5)
 hist(data1)
 ```
+\endcol
 
-
+\begincol
 ```{r fig.align='left', fig.height=4, fig.width=4, echo=1}
 data2=rnorm(100, 2 + 1.6*x, 5)
 hist(data2)
 ```
+\endcol
+\endcols
 
-</div>
 
+These two datasets are different, even though they arise from same process.
 
-These two datasets are different, even though they arise from same process
+Data inform about process, but have 'noise' too.
 
 
 
 ## Hierarchical Bayes: data, process, parameters
 
-<div class="columns-2">
+\begincols
+\begincol
 
 ![](images/structure.png)
+\endcol
+
+\begincol
 
 ![](images/decomposition.png)
+\endcol
+\endcols
 
-</div>
 
-<br>
-<br>
 
 *Clark et al. 2006, Clark 2007*
 
@@ -969,11 +1378,9 @@ These two datasets are different, even though they arise from same process
 
 # Exercise
 
+----
 
-## Does sex influence height?
-
-Do it yourself    
-
+Does sex influence height?
 
 
 
@@ -992,8 +1399,8 @@ plot(trees$dbh, trees$dead, xlab="DBH", ylab="Dead", pch=20)
 
 ## Logistic regression model
 
-```{r}
-model5 <- function(){
+```{r echo=TRUE}
+logreg <- function(){
   
   # LIKELIHOOD
   for (i in 1:length(dead)){
@@ -1011,16 +1418,16 @@ model5 <- function(){
 
 ## Calling JAGS
 
-```{r echo=TRUE}
-data <- list(dead=trees$dead,   
-             dbhc=trees$dbh.c)
+```{r echo=TRUE, results='hide'}
+data <- list(dead = trees$dead,   
+             dbhc = trees$dbh.c)
 m5 <- jags(data,  
-           model.file=model5,  
+           model.file = logreg,  
            parameters.to.save = c("mu", "beta"),  
-           n.chains=3,  
-           inits=NULL,  
-           n.iter=10000,
-           n.burnin=5000) 
+           n.chains = 3,  
+           inits = NULL,  
+           n.iter = 4000,
+           n.burnin = 2000) 
 ```
 
 
@@ -1036,16 +1443,134 @@ print(m5, intervals = c(0.025, 0.975))
 
 ## Compare with glm
 
-```{r}
+```{r echo=1}
 logreg <- glm(dead ~ dbh.c, data = trees, family = binomial)
 display(logreg)
 ```
 
 
 
+# STAN
+
+----
+
+STAN models are defined similarly to JAGS
+
+(but see STAN manual for differences)
+
+
+
+## Our Bayesian linear regression in JAGS
+
+```{r echo=TRUE}
+bayes.lm <- function(){
+  
+  # LIKELIHOOD
+  for (i in 1:length(height)){
+    height[i] ~ dnorm(mu[i], tau)    # tau = precision (inverse of variance)
+    mu[i] <- alpha + beta*dbhc[i]    # centred diameter
+  }
+  
+  # PRIORS (vague or weakly informative)
+  alpha ~ dunif(1, 100)     # prior for average height of a 25-cm-DBH tree
+  beta ~ dunif(0, 10)       # how much do we expect height to scale with DBH?
+  tau <- 1/(sigma*sigma)    # tau = 1/sigma^2
+  sigma ~ dunif(0, 50)      # residual standard deviation
+}
+```
+
+
+
+## Bayesian linear regression in STAN
+
+```{r echo=TRUE}
+bayes.lm.stan <- "
+ 
+  data {
+    int<lower=0> N;
+    vector[N] dbhc;
+    vector[N] height;
+  }
+
+  parameters {
+    real<lower=0, upper=100> alpha;
+    real<lower=0, upper=10> beta;
+    real<lower=0, upper=50> sigma;
+  }
+  
+  model {
+    height ~ normal(alpha + beta * dbhc, sigma);
+  }
+"
+```
+
+
+## Fitting model in STAN
+
+```{r message=FALSE, echo=TRUE, results='hide'}
+library(rstan)
+lm.stan <- stan(model_code = bayes.lm.stan, 
+                data = list(height = trees$height, dbhc = trees$dbh.c, 
+                            N = nrow(trees)),
+                pars = c("alpha", "beta", "sigma"),
+                chains = 3,
+                iter = 2000,
+                init = "random")
+```
+
+
+## Similar results as JAGS
+
+```{r echo=FALSE}
+lm.stan
+```
+
+
+
+## Lots of example models in STAN
+
+https://github.com/stan-dev/example-models/wiki
+
+
+
+# To fit 'standard' Bayesian GLMs and GLMMs, use rstanarm
+
+----
+
+```{r echo=FALSE, out.width="4in", out.height="3in"}
+include_graphics("images/rstanarm.png")
+```
+
+
+## Bayesian modelling in one line of code!
+
+```{r message=FALSE, echo=TRUE, results='hide'}
+library(rstanarm)
+easybayes <- stan_glm(height ~ dbh.c, data = trees, family = gaussian,
+                      prior_intercept = normal(30, 30),
+                      prior = normal(0, 10))
+```
+
+## and results make sense :)
+
+```{r}
+easybayes
+```
+
+
+----
+
+```{r}
+include_graphics("images/thinkinator.png")
+```
+
+
 
 ## END
 
+
 ![](images/CC-BY-NC-SA_logo.png)
+
+Slides and source code available at https://github.com/Pakillo/Bayes-R-JAGS-intro
 
 
