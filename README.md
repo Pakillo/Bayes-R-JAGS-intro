@@ -5,7 +5,7 @@
 
 See slides (PDF) [here](https://github.com/Pakillo/Bayes-R-JAGS-intro/raw/master/Bayes_intro.pdf)
 
-See Rmarkdown source code for slides [here](https://github.com/Pakillo/Bayes-R-JAGS-intro/blob/master/Bayes_intro.Rmd)
+See slides source code (Rmarkdown) [here](https://github.com/Pakillo/Bayes-R-JAGS-intro/blob/master/Bayes_intro.Rmd)
 
 Link for datasets: http://tinyurl.com/treesdata
 

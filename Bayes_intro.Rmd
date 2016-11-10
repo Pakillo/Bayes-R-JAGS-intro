@@ -2,7 +2,6 @@
 title: |
     | An introduction to Bayesian modelling
     | with R, JAGS and STAN
-subtitle: ""
 author: "Francisco Rodriguez-Sanchez (@frod_san)"
 date: "November 2016"
 fontsize: 9pt
@@ -72,6 +71,16 @@ Even if you don't become Bayesian today,
 this workshop will help you to understand
 
 regression and 'mixed-effects' models better.
+
+
+----
+
+*The purpose of models is not to fit data,*
+
+*but to sharpen the questions*
+
+
+Samuel Karlin
 
 
 
@@ -690,7 +699,7 @@ How would you do this?
 
 ## Observed vs Predicted values
 
-```{r echo=TRUE, fig.height=2, fig.width=3}
+```{r echo=TRUE, fig.height=3, fig.width=4}
 alpha.avg <- mean(m1$BUGSoutput$sims.list$alpha)
 beta.avg <- mean(m1$BUGSoutput$sims.list$beta)
 mu <- alpha.avg + beta.avg*trees$dbh.c
