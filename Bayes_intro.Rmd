@@ -1055,10 +1055,30 @@ $$
   \end{aligned}
 $$
 
+## Random vs fixed effects
+
+[Many definitions, so much confusion](http://andrewgelman.com/2005/01/25/why_i_dont_use/)
+
+**What is a random effect, really?**
+
+1. Varies by group
+
+2. Variation estimated with probability model
+
+Random effects are estimated with partial pooling, while fixed effects are not (infinite variance).
+
+
+## Random vs fixed effects
+
+```{r eval=TRUE}
+include_graphics("images/mixed_models.pdf")
+```
+
+
+http://www.esourceresearch.org/
 
 
 ## Fitting mixed models with lmer
-
 
 ```{r mixed, echo=2, cache=FALSE}
 library(lme4)
@@ -1319,9 +1339,9 @@ coefplot(mean.alpha, sd.alpha, cex.var=1, cex.pts=1.5, vertical=FALSE,
 
 ## So what's a multilevel/hierarchical model?
 
-Parameters/coefficients are given a probability model (with their own hyperparameters estimated from data).
+- Parameters/coefficients are given a probability model (with their own hyperparameters estimated from data).
 
-Intercepts and/or slopes may vary, and can be modelled (sometimes including their own predictors).
+- Intercepts and/or slopes may vary, and can be modelled (sometimes including their own predictors).
 
  
 
